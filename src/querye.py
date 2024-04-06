@@ -1,8 +1,8 @@
 query_bbdd = "CREATE SCHEMA IF NOT EXISTS `nuestra_tienda`;"
 
-query_tabla_clientes = """
+crear_tabla_clientes = """
                     CREATE TABLE IF NOT EXISTS `nuestra_tienda`.`clientes` (
-                    `id` INT NOT NULL,
+                    `id` VARCHAR(100) INT NOT NULL,
                     `first_name` VARCHAR(100) NOT NULL,
                     `last_name` VARCHAR(100) NOT NULL,
                     `email` VARCHAR(100) NOT NULL,
@@ -12,8 +12,9 @@ query_tabla_clientes = """
                     `address` VARCHAR(100) 
                     PRIMARY KEY (`id`));
                     """
+insertar_clientes = "INSERT INTO clientes (id, first_name, last_name, email, gender, city, country, address  ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
 
-query_tabla_ventas = """
+crear_tabla_ventas = """
                     CREATE TABLE IF NOT EXISTS `nuestra_tienda`.`ventas` (
                     `id_cliente` INT NOT NULL,
                     `id_producto` INT NOT NULL,
@@ -23,6 +24,8 @@ query_tabla_ventas = """
                    FOREIGN KEY (ID_Cliente) REFERENCES Clientes(ID_Cliente),
                    FOREIGN KEY (ID_Producto) REFERENCES Productos(ID_Producto);
                     """
+insertar_ventas = "INSERT INTO ventas (id_cliente, id_producto, fecha_venta, cantidad, total ) VALUES (%s, %s, %s, %s, %s)"
+
 
 
 
