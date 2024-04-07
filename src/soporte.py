@@ -25,63 +25,149 @@ def apertura(ruta):
     # Si al cargar el dataframe se creó una columna de unnamed, la elimina
     if 'Unnamed: 0' in df.columns:
         df.drop('Unnamed: 0', axis = 1, inplace=True)
-       
 
-def exploracion_dataframe(dataframe):
-    """Esta función  imprime información sobre la forma, columnas, tipos de datos, valores nulos, duplicados, valores duplicados 
-    de cada columna, valores únicos de cada columna, y realiza un resumen estadístico para las columnas numéricas 
-    y categóricas. """
+def leer_csv(carpeta, nombre_archivo):
+    '''
+    Abre y lee los documentos CSV. 
+        Si el archivo se encuentra, lo abre en un DataFrame de pandas y lo devuelve. 
+        Si el archivo no se encuentra, la función imprime un mensaje indicando que el archivo no se encontró y devuelve None.
+    
+    Esta función toma el nombre de una carpeta y el nombre de archivo como entrada y lee el archivo CSV.
+    
+    Args:
+        carpeta (str): El nombre de la carpeta donde se encuentra el archivo.
+        nombre_archivo (str): El nombre del archivo csv sin la extensión.
+        
 
-    #Nos enseña los duplicados en el DF
+    Returns:
+        pd.DataFrame: Un DataFrame que contiene los datos del archivo csv, o None si el archivo no se encuentra.
+    '''
+    try:
+        df = pd.read_csv(f'{carpeta}/{nombre_archivo}.csv', error_bad_lines=False, warn_bad_lines=False)
+        return df
+    except FileNotFoundError:
+        print('No se ha encontrado el archivo')
+        return None
+    
+def col_minuscula(dataframe):
+    '''
+    Pone en minúscula los nombres de las columnas del DataFrame.
+    Esta función toma un DataFrame y cambia todos los nombres de las columnas y los pone en minúscula.
+
+    Args:
+        df (pd.DataFrame): El DataFrame que se desea modificar.
+
+    Returns:
+        None: La función modifica el DataFrame directamente cambiando el formato de sus nombres de columnas.
+    '''
+    print("Nombres de las columnas antes del cambio:")
+    print(dataframe.columns)
+
+    dataframe.columns = dataframe.columns.str.lower()
+
+    print("----")
+    print("\nNombres de las columnas después del cambio:")
+    print(dataframe.columns)
+
+def mostrar_tipos(dataframe):
+    """
+    Muestra el dtype de cada columna de un DataFrame.
+    
+    Args:
+        dataframe (pandas.DataFrame): El DataFrame del que se mostrarán los dtypes de las columnas.
+    """
+    for columna in dataframe.columns:
+        print(f"Columna '{columna}': {dataframe[columna].dtype}")
+
+def valores_unicos(dataframe, columnas):
+    '''
+    Muestra los valores únicos de las columnas numéricas de un DataFrame.
+
+    Args:
+        dataframe (pd.DataFrame): El DataFrame del que se mostrarán los valores únicos.
+        columnas (str o list): Un string o lista de strings que contiene los nombres de las columnas numéricas.
+
+    Returns:
+        None: La función imprime los valores únicos para cada columna numérica.
+    '''
+    for col in columnas:
+        print(f"La columna {col.upper()} tiene los siguientes valores únicos:")
+        display(pd.DataFrame(dataframe[col].value_counts()).head())
+        print("----")
+
+def describir_columnas(dataframe, columnas):
+    '''
+    Muestra las estadísticas descriptivas de las columnas especificadas de un DataFrame.
+
+    Args:
+        dataframe (pd.DataFrame): El DataFrame del que se mostrarán las estadísticas descriptivas.
+        columnas (str o list): Un string o lista de strings que contiene los nombres de las columnas.
+
+    Returns:
+        None: La función imprime las estadísticas descriptivas para cada columna especificada.
+    '''
+    for col in columnas:
+        print(f"Descripción de la columna {col.upper()}:")
+        display(dataframe[[col]].describe().T)
+        print("\n ----- \n")
+
+def explorar_duplicados(dataframe):
+    """
+    Esta función muestra la cantidad de duplicados en el conjunto de datos.
+
+    Args:
+        dataframe (pandas.DataFrame): El DataFrame que se va a explorar en busca de duplicados.
+
+    Returns:
+        None
+    """
     print(f"Tenemos {dataframe.duplicated().sum()} duplicados en el conjunto de datos.")
-    print("\n ----- \n")
-    
-    
-    #Nos muestra un DataFrame para los valores nulos
+
+def eliminar_duplicados(dataframe):
+    """
+    Elimina los duplicados de un DataFrame.
+
+    Args:
+        df (pd.DataFrame): DataFrame de pandas.
+
+    Returns:
+        None
+    """
+
+    print(f"Antes de realizar la eliminación tenemos {dataframe.shape[0]} filas.")
+    dataframe.drop_duplicates(inplace=True)
+    print(f"Después de la eliminación de duplicados tenemos {dataframe.duplicated().sum()} duplicados en el conjunto de datos.")
+    print(f"Después de realizar la eliminación tenemos {dataframe.shape[0]} filas.")
+
+def explorar_nulos(dataframe):
+    """
+    Esta función presenta un DataFrame que contiene el porcentaje de valores nulos para cada columna.
+
+    Args:
+        dataframe (pandas.DataFrame): El DataFrame que se va a explorar en busca de valores nulos.
+
+    Returns: 
+        None
+    """
+    # Nos muestra un DataFrame para los valores nulos
     print("Los nulos que tenemos en el conjunto de datos son:")
-    df_nulos = pd.DataFrame(dataframe.isnull().sum() / dataframe.shape[0] * 100, columns = ["%_nulos"])
+    df_nulos = pd.DataFrame(dataframe.isnull().sum() / dataframe.shape[0] * 100, columns=["%_nulos"])
     display(df_nulos[df_nulos["%_nulos"] > 0])
-    
-    print("\n ----- \n")
-    #Nos muestra los tipos de columnas
-    print(f"Los tipos de las columnas son:")
-    display(pd.DataFrame(dataframe.dtypes, columns = ["tipo_dato"]))
-    
-    
-    print("\n ----- \n")
-    #Nos muestra los valores de las columnas categóricas
-    print("Los valores que tenemos para las COLUMNAS CATEGÓRICAS son: ")
-    dataframe_categoricas = dataframe.select_dtypes(include = "O")
-    
-    for col in dataframe_categoricas.columns:
-        print(f"La columna {col.upper()} tiene las siguientes valores únicos:")
-        display(pd.DataFrame(dataframe[col].value_counts()).head())    
-    
-    #Sacamos los principales estadísticos de cada una de las categorías
 
-    columnas_numericas = dataframe.select_dtypes(include=['int', 'float']).columns
-    columnas_categoricas = dataframe.select_dtypes(include='O').columns
+def rellenar_nulos(dataframe, columnas, valor):
+    '''
+    Rellena los valores nulos en las columnas especificadas de un DataFrame con un valor específico.
 
-    for col in columnas_categoricas:
-        print("\n ----- \n")
-        print(f"Los principales estadísticos de las COLUMNAS CATEGÓRICAS para el {col.upper()} son: ")
-        display(dataframe[[col]].describe().T)
+    Args:
+        dataframe (pd.DataFrame): El DataFrame en el que se van a rellenar los valores nulos.
+        columnas (str o list): Un string o lista de strings que contiene los nombres de las columnas en las que se van a rellenar los valores nulos.
+        valor (int, float, str, etc.): El valor con el que se van a rellenar los valores nulos.
 
-    for col in columnas_numericas:
-        print("\n ----- \n")
-        print(f"Los principales estadísticos de las COLUMNAS NUMÉRICAS para el {col.upper()} son: ")
-        display(dataframe[[col]].describe().T)
-
-
-def imputar_nulos(dataframe):
-    """ funcion para imputar nulos"""
-
-    for col in dataframe.columns:
-        dataframe[col] = dataframe[col].fillna('desconocido')
-
-    print("Después del reemplazo usando 'fillna' quedan los siguientes nulos")
-    print(dataframe.isnull().sum())
-
+    Returns:
+        None: La función modifica el DataFrame original inplace.
+    '''
+    dataframe[columnas] = dataframe[columnas].fillna(valor)
+    print(f"El total de nulos en las columnas {columnas} después de aplicar .fillna() es: {dataframe[columnas].isna().sum()}")
 
 
 def guardado(dataframe, nombre):
@@ -158,7 +244,7 @@ def convertir_float(lista_tuplas):
 
 
 
- def insertar_datos(query, contraseña, nombre_bbdd, lista_tuplas):
+def insertar_datos(query, contraseña, nombre_bbdd, lista_tuplas):
     """
     Inserta datos en una base de datos utilizando una consulta y una lista de tuplas como valores.
     Args:
